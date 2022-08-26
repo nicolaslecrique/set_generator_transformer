@@ -51,7 +51,7 @@ nlayers = 3  # the number of nn.TransformerEncoderLayer in nn.TransformerEncoder
 nhead = 4  # the number of heads in the multi head attention models
 dropout = 0.05  # the dropout value
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = TransformerModel(recipe_set_as_sequences.idx_to_token, embedding_dim, nhead, hidden_dim, nlayers, pad_idx, mask_next_tokens=True, positioning=False, dropout=dropout).to(device)
+model = TransformerModel(recipe_set_as_sequences.idx_to_token, embedding_dim, nhead, hidden_dim, nlayers, pad_idx, positioning=False, dropout=dropout).to(device)
 
 # ================= Setup learning config ===================
 

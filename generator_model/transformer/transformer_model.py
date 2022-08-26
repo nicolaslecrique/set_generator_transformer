@@ -14,7 +14,6 @@ class TransformerModel(nn.Module):
                  hidden_dim_feed_forward_layers: int,
                  nb_encoder_layers: int,
                  padding_idx: int,
-                 mask_next_tokens: bool,
                  positioning: bool=True,
                  dropout: float=0.5,
                  max_sentence_size: int=50):
@@ -23,9 +22,7 @@ class TransformerModel(nn.Module):
         self.positioning = positioning
         self.model_type = 'Transformer'
         self.nb_tokens_in_vocab = len(idx_to_token)
-        self.mask_next_tokens = mask_next_tokens
-        if mask_next_tokens:
-            self.src_mask_by_sequence_size = [None] * (max_sentence_size + 1)
+        self.src_mask_by_sequence_size = [None] * (max_sentence_size + 1)
 
         self.pos_encoder_or_dropout = PositionalEncoding(embedding_dim_between_layers, dropout) if positioning else nn.Dropout(p=dropout)
 
@@ -57,13 +54,11 @@ class TransformerModel(nn.Module):
     def forward(self, sequences):
         len_sequence = len(sequences)
 
-        mask = None
-        if self.mask_next_tokens:
-            if self.src_mask_by_sequence_size[len_sequence] is None:
-                device = sequences.device
-                mask = self._generate_square_subsequent_mask(len_sequence).to(device)
-                self.src_mask_by_sequence_size[len_sequence] = mask
-            mask = self.src_mask_by_sequence_size[len_sequence]
+        if self.src_mask_by_sequence_size[len_sequence] is None:
+            device = sequences.device
+            mask = self._generate_square_subsequent_mask(len_sequence).to(device)
+            self.src_mask_by_sequence_size[len_sequence] = mask
+        mask = self.src_mask_by_sequence_size[len_sequence]
 
         # division is in tutorial and also done in http://nlp.seas.harvard.edu/2018/04/03/attention.html#encoder
         # but it's explained nowhere !!! is it for the same reason that it's in attention ?

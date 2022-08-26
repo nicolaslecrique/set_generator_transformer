@@ -11,7 +11,6 @@ class TransformedFood:
         self.quantity_in_gram = quantity_in_gram
 
 
-
 class Component:
     quantity_in_gram: float
     uri: str

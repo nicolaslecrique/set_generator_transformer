@@ -4,16 +4,11 @@ import torch
 from torch import nn as nn
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
 
-# transfomer architecture, inspired by code example in https://pytorch.org/tutorials/beginner/transformer_tutorial.html
-# cf. https://arxiv.org/abs/1706.03762 (attention is all you need) and
-# https://arxiv.org/pdf/1810.04805.pdf (BERT model)
+
 class TransformerModel(nn.Module):
 
-    nb_tokens_in_vocab: int
-    output_dim: int
-
     def __init__(self,
-                 nb_tokens_in_vocab: int,
+                 idx_to_token: [str],
                  embedding_dim_between_layers: int,
                  nb_attention_heads: int,
                  hidden_dim_feed_forward_layers: int,
@@ -27,8 +22,7 @@ class TransformerModel(nn.Module):
         super(TransformerModel, self).__init__()
         self.positioning = positioning
         self.model_type = 'Transformer'
-        self.output_dim = embedding_dim_between_layers
-        self.nb_tokens_in_vocab = nb_tokens_in_vocab
+        self.nb_tokens_in_vocab = len(idx_to_token)
         self.mask_next_tokens = mask_next_tokens
         if mask_next_tokens:
             self.src_mask_by_sequence_size = [None] * (max_sentence_size + 1)
@@ -42,9 +36,10 @@ class TransformerModel(nn.Module):
             dropout
         )
         self.transformer_encoder = TransformerEncoder(encoder_layers, nb_encoder_layers)
-        self.vocab_to_embedding = nn.Embedding(nb_tokens_in_vocab, embedding_dim_between_layers, padding_idx=padding_idx)
+        self.vocab_to_embedding = nn.Embedding(self.nb_tokens_in_vocab, embedding_dim_between_layers, padding_idx=padding_idx)
+        self.embedding_to_vocab = nn.Linear(embedding_dim_between_layers, self.nb_tokens_in_vocab)
         self.embedding_dim_between_layers = embedding_dim_between_layers
-
+        self.idx_to_token = idx_to_token  # so it's serialized with model
         self._init_weights()
 
     def _generate_square_subsequent_mask(self, len_sequence):
@@ -55,6 +50,8 @@ class TransformerModel(nn.Module):
     def _init_weights(self):
         initrange = 0.1
         self.vocab_to_embedding.weight.data.uniform_(-initrange, initrange)
+        self.embedding_to_vocab.bias.data.zero_()
+        self.embedding_to_vocab.weight.data.uniform_(-initrange, initrange)
 
     # take a tensor of size [sequence_size, batch_size]
     def forward(self, sequences):
@@ -75,7 +72,8 @@ class TransformerModel(nn.Module):
         sequences = self.vocab_to_embedding(sequences) * math.sqrt(self.embedding_dim_between_layers)
         sequences = self.pos_encoder_or_dropout(sequences)
         output = self.transformer_encoder(sequences, mask)
-        return output
+        vocab = self.embedding_to_vocab(output)
+        return vocab
 
 
 class PositionalEncoding(nn.Module):

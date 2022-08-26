@@ -14,7 +14,6 @@ from generator_model.data_loading.recipe_as_sequence_loader import RecipesSetAsS
 from generator_model.language_model_transformer.language_model_dataset import RecipeDatasetAsLanguageModel, \
     CollateFctForRecipeAsLanguageModel
 from generator_model.transformer.transformer_model import TransformerModel
-from generator_model.language_model_transformer.language_model_transformer import LanguageModelTransformer
 from generator_model.language_model_transformer.sequence_generator import SequenceGenerator
 from generator_model.transformer.transformer_training import evaluate, train_model
 from generator_model.data_loading.recipes_loader import Recipe, load_recipes
@@ -52,8 +51,7 @@ nlayers = 3  # the number of nn.TransformerEncoderLayer in nn.TransformerEncoder
 nhead = 4  # the number of heads in the multi head attention models
 dropout = 0.05  # the dropout value
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-transformer_model = TransformerModel(len(idx_to_token), embedding_dim, nhead, hidden_dim, nlayers, pad_idx, mask_next_tokens=True, positioning=False, dropout=dropout).to(device)
-model = LanguageModelTransformer(transformer_model, recipe_set_as_sequences.idx_to_token)
+model = TransformerModel(recipe_set_as_sequences.idx_to_token, embedding_dim, nhead, hidden_dim, nlayers, pad_idx, mask_next_tokens=True, positioning=False, dropout=dropout).to(device)
 
 # ================= Setup learning config ===================
 
@@ -88,7 +86,6 @@ test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=eval_batch_si
 nb_batches = len(train_dataset) // batch_size
 
 train_model(model, train_loader, valid_loader, optimizer, nb_softmax, train_criterion, eval_criterion, scheduler, nb_batches, nb_epochs)
-
 recipe_name = f'../model_save/transformer_recipe_{embedding_dim}emb_{hidden_dim}hid_{nlayers}lay_{dropout}drop_{lr}lr_{batch_size}batch_{nb_epochs}epo.pt'
 
 torch.save(model, recipe_name)

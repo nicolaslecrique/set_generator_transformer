@@ -20,9 +20,7 @@ class TransformerModel(nn.Module):
 
         super(TransformerModel, self).__init__()
         self.nb_tokens_in_vocab = len(idx_to_token)
-        self.src_mask_by_sequence_size = [None] * (max_sentence_size + 1)
-        for len_sequence in range(max_sentence_size + 1):
-            self.src_mask_by_sequence_size[len_sequence] = self._generate_square_subsequent_mask(len_sequence)
+        self.src_mask_by_sequence_size = [self._generate_square_subsequent_mask(len_sequence) for len_sequence in range(max_sentence_size + 1)]
 
         self.vocab_to_embedding = nn.Embedding(self.nb_tokens_in_vocab, embedding_dim_between_layers, padding_idx=padding_idx)
         self.pos_encoder_or_dropout = PositionalEncoding(embedding_dim_between_layers, dropout) if add_positioning_to_embeddings else nn.Dropout(p=dropout)

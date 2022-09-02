@@ -21,6 +21,8 @@ class TransformerModel(nn.Module):
         super(TransformerModel, self).__init__()
         self.nb_tokens_in_vocab = len(idx_to_token)
         self.src_mask_by_sequence_size = [None] * (max_sentence_size + 1)
+        for len_sequence in range(max_sentence_size + 1):
+            self.src_mask_by_sequence_size[len_sequence] = self._generate_square_subsequent_mask(len_sequence)
 
         self.vocab_to_embedding = nn.Embedding(self.nb_tokens_in_vocab, embedding_dim_between_layers, padding_idx=padding_idx)
         self.pos_encoder_or_dropout = PositionalEncoding(embedding_dim_between_layers, dropout) if add_positioning_to_embeddings else nn.Dropout(p=dropout)
@@ -51,13 +53,7 @@ class TransformerModel(nn.Module):
 
     # take a tensor of size [sequence_size, batch_size]
     def forward(self, sequences):
-        len_sequence = len(sequences)
-
-        if self.src_mask_by_sequence_size[len_sequence] is None:
-            device = sequences.device
-            mask = self._generate_square_subsequent_mask(len_sequence).to(device)
-            self.src_mask_by_sequence_size[len_sequence] = mask
-        mask = self.src_mask_by_sequence_size[len_sequence]
+        mask = self.src_mask_by_sequence_size[len(sequences)]
 
         # division is in tutorial and also done in http://nlp.seas.harvard.edu/2018/04/03/attention.html#encoder
         # but it's explained nowhere !!! is it for the same reason that it's in attention ?

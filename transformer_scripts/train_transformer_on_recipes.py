@@ -7,6 +7,8 @@ from torch.optim.lr_scheduler import StepLR
 from torch.optim.optimizer import Optimizer
 from torch.utils.data.dataloader import DataLoader
 
+from generator_model.transformer.CrossEntropyTransformerLoss import CrossEntropyLossTransformerLoss
+from generator_model.transformer.SoftCrossEntropyTransformerLoss import SoftCrossEntropyLossTransformerLoss
 from generator_model.transformer.transformer_loss import TransformerLossResult
 from generator_model.language_model_transformer.language_model_loss import CrossEntropyUnorderedSequenceLoss
 from generator_model.data_loading.recipe_as_sequence_loader import RecipesSetAsSequences, load_recipes_as_sequences, \
@@ -59,8 +61,8 @@ model = TransformerModel(recipe_set_as_sequences.idx_to_token, embedding_dim, nh
 def nb_softmax(data: torch.Tensor) -> int:
     return (data != pad_idx).sum().item()
 
-train_criterion = CrossEntropyUnorderedSequenceLoss(nb_classes=len(idx_to_token), pad_idx=pad_idx, eos_idx=eos_idx, label_smoothing_coeff=0.05)
-eval_criterion = CrossEntropyUnorderedSequenceLoss(nb_classes=len(idx_to_token), pad_idx=pad_idx, eos_idx=eos_idx)
+train_criterion = SoftCrossEntropyLossTransformerLoss(nb_classes=len(idx_to_token), pad_idx=pad_idx, eos_idx=eos_idx, label_smoothing_coeff=0.05)
+eval_criterion = SoftCrossEntropyLossTransformerLoss(nb_classes=len(idx_to_token), pad_idx=pad_idx, eos_idx=eos_idx)
 
 lr = 5.0  # learning rate
 optimizer: Optimizer = torch.optim.SGD(model.parameters(), lr)

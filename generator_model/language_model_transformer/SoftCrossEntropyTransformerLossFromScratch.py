@@ -4,7 +4,7 @@ from torch.nn import functional as F
 from generator_model.transformer.transformer_loss import TransformerLoss, TransformerLossResult
 
 
-class CrossEntropyUnorderedSequenceLoss(TransformerLoss):
+class SoftCrossEntropyTransformerLossFromScratch(TransformerLoss):
 
     eos_idx: int
     pad_idx: int
@@ -13,7 +13,7 @@ class CrossEntropyUnorderedSequenceLoss(TransformerLoss):
     nb_classes: int
 
     def __init__(self, nb_classes: int, pad_idx: int, eos_idx: int, label_smoothing_coeff=0.0):
-        super(CrossEntropyUnorderedSequenceLoss, self).__init__()
+        super(SoftCrossEntropyTransformerLossFromScratch, self).__init__()
         self.nb_classes = nb_classes
         self.label_smoothing_coeff = label_smoothing_coeff
         self.pad_idx = pad_idx
@@ -63,12 +63,16 @@ class CrossEntropyUnorderedSequenceLoss(TransformerLoss):
         target_proba.div_(nb_targets)
 
         # 4) apply label smoothing
+        target_proba_smoothed = self._apply_label_smoothing_to_target(nb_targets, target_proba)
+
+        return target_proba_smoothed
+
+    def _apply_label_smoothing_to_target(self, nb_targets, target_proba):
         # https://arxiv.org/pdf/1512.00567.pdf, https://arxiv.org/abs/1906.02629
         nb_targets_smoothing = self.nb_classes - nb_targets
         smoothing_value = self.label_smoothing_coeff / nb_targets_smoothing
-        target_proba.mul_(1.0-self.label_smoothing_coeff)  # apply smoothing
+        target_proba.mul_(1.0 - self.label_smoothing_coeff)  # apply smoothing
         target_proba_smoothed = torch.max(target_proba, smoothing_value)  # use broadcasting
-
         return target_proba_smoothed
 
     def partial_losses_dim(self) -> int:

@@ -5,12 +5,12 @@ from torch.nn import functional as F
 from generator_model.transformer.transformer_loss import TransformerLoss, TransformerLossResult
 
 
-class CrossEntropyLossTransformerLoss(TransformerLoss):
+class CrossEntropyTransformerLoss(TransformerLoss):
 
     def __init__(self, nb_classes: int, pad_idx: int, eos_idx: int, label_smoothing_coeff=0.0):
         super(TransformerLoss, self).__init__()
         self.nb_classes = nb_classes
-        self.loss = nn.CrossEntropyLoss(label_smoothing=label_smoothing_coeff)
+        self.loss = nn.CrossEntropyLoss(label_smoothing=label_smoothing_coeff, ignore_index=pad_idx)
 
     # input: Tensor [sequence_size, batch_size, vocab_size] of linear output to give to softmax
     # target: Tensor [sequence_size, batch_size] of token indexes

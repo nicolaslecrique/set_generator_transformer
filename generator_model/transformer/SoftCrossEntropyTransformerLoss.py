@@ -11,7 +11,7 @@ class SoftCrossEntropyLossTransformerLoss(TransformerLoss):
         self.nb_classes = nb_classes
         self.pad_idx = pad_idx
         self.eos_idx = eos_idx
-        self.loss = nn.CrossEntropyLoss(label_smoothing=label_smoothing_coeff)
+        self.loss = nn.CrossEntropyLoss(label_smoothing=label_smoothing_coeff, ignore_index=pad_idx)
 
     # result: Tensor [sequence_size, batch_size, vocab_size] of linear output to give to softmax
     # target: Tensor [sequence_size, batch_size] of token indexes

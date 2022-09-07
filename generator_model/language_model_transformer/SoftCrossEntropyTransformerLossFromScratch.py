@@ -6,12 +6,6 @@ from generator_model.transformer.transformer_loss import TransformerLoss, Transf
 
 class SoftCrossEntropyTransformerLossFromScratch(TransformerLoss):
 
-    eos_idx: int
-    pad_idx: int
-
-    label_smoothing_coeff: float
-    nb_classes: int
-
     def __init__(self, nb_classes: int, pad_idx: int, eos_idx: int, label_smoothing_coeff=0.0):
         super(SoftCrossEntropyTransformerLossFromScratch, self).__init__()
         self.nb_classes = nb_classes

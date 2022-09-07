@@ -7,10 +7,10 @@ from torch.optim.lr_scheduler import StepLR
 from torch.optim.optimizer import Optimizer
 from torch.utils.data.dataloader import DataLoader
 
-from generator_model.transformer.CrossEntropyTransformerLoss import CrossEntropyLossTransformerLoss
+from generator_model.transformer.CrossEntropyTransformerLoss import CrossEntropyTransformerLoss
 from generator_model.transformer.SoftCrossEntropyTransformerLoss import SoftCrossEntropyLossTransformerLoss
 from generator_model.transformer.transformer_loss import TransformerLossResult
-from generator_model.language_model_transformer.language_model_loss import CrossEntropyUnorderedSequenceLoss
+from generator_model.language_model_transformer.SoftCrossEntropyTransformerLossFromScratch import SoftCrossEntropyTransformerLossFromScratch
 from generator_model.data_loading.recipe_as_sequence_loader import RecipesSetAsSequences, load_recipes_as_sequences, \
     RecipeAsSequence
 from generator_model.language_model_transformer.language_model_dataset import RecipeDatasetAsLanguageModel, \
@@ -61,8 +61,8 @@ model = TransformerModel(recipe_set_as_sequences.idx_to_token, embedding_dim, nh
 def nb_softmax(data: torch.Tensor) -> int:
     return (data != pad_idx).sum().item()
 
-train_criterion = SoftCrossEntropyLossTransformerLoss(nb_classes=len(idx_to_token), pad_idx=pad_idx, eos_idx=eos_idx, label_smoothing_coeff=0.05)
-eval_criterion = SoftCrossEntropyLossTransformerLoss(nb_classes=len(idx_to_token), pad_idx=pad_idx, eos_idx=eos_idx)
+train_criterion = SoftCrossEntropyTransformerLossFromScratch(nb_classes=len(idx_to_token), pad_idx=pad_idx, eos_idx=eos_idx, label_smoothing_coeff=0.05)
+eval_criterion = SoftCrossEntropyTransformerLossFromScratch(nb_classes=len(idx_to_token), pad_idx=pad_idx, eos_idx=eos_idx)
 
 lr = 5.0  # learning rate
 optimizer: Optimizer = torch.optim.SGD(model.parameters(), lr)
@@ -70,7 +70,7 @@ scheduler: StepLR = torch.optim.lr_scheduler.StepLR(optimizer, 1, gamma=0.95)
 
 batch_size = 50  # original : 20
 eval_batch_size = 10
-nb_epochs = 40  # The number of epochs, (was 3 on tutorial)
+nb_epochs = 20  # The number of epochs, (was 3 on tutorial)
 
 # ================= build train/valid/tes set ===================
 
